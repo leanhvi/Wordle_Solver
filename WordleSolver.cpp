@@ -103,16 +103,60 @@ public:
         return results;
     }
 
-    void play() {
-        std::string prompt = "Your current cell is marked with a '='.\n * Enter a letter if you know it belongs in that cell.\n * Enter a space if you want to skip to the next cell.\n * Enter '1' to move one cell back and make changes.\n * Enter '0' to exit the board editing process.";
-        std::cout << prompt << std::endl;
+    std::vector<std::string> remover(const std::vector<std::string> bigList, const std::string ignore) {
+        std::vector<std::string> newList;
+        for (const auto word : bigList) {
+            bool flag = true;
+            for (char ch : ignore) {
+                if (word.find(ch) != std::string::npos) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                newList.push_back(word);
+            }
+        }
+        return newList;
+    }
+
+    std::vector<std::string> mustHave(const std::vector<std::string> bigList) {
+        std::string must = getInput("Type in the letters to include but not sure of location: ");
+        std::vector<std::string> newList;
+        for (const auto& word : bigList) {
+            bool flag = true;
+            for (char ch : must) {
+                if (word.find(ch) == std::string::npos) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                newList.push_back(word);
+            }
+        }
+        return newList;
+    }
+
+      void play() {
         resetBoard();
         initializeBoard();
-        std::vector<std::string> rows = letterWords();
-        std::vector<std::string> results = matcher(rows, board);
 
-        std::cout << "Here are the results of the matches:" << std::endl;
-        if (results.empty()) {
+        while (true) {
+            std::vector<std::string> rows = letterWords();
+            std::string ignore = getInput("Type in the letters to ignore (if any): ");
+            std::istringstream iss(ignore);
+            ignoreWords = std::vector<std::string>((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
+
+            if (!ignoreWords.empty() && !ignoreWords[0].empty()) {
+                rows = remover(rows, ignoreWords[0]);
+            }
+
+            std::vector<std::string> results = matcher(rows, board);
+            results = mustHave(results);
+
+            std::cout << "Here are the results of the matches:" << std::endl;
+            if (results.empty()) {
                 std::cout << "[]" << std::endl;
             } else {
                 std::cout << "[";
@@ -131,9 +175,21 @@ public:
                         }
                     }
                 }
-            std::cout << "]" << std::endl;
-         }
-     }
+                std::cout << "]" << std::endl;
+            }
+
+            std::string nextMove = getInput("Do you want to continue (c), reset (r), or exit (e)? ");
+            if (nextMove == "e") {
+                break;
+            } else if (nextMove == "r") {
+                resetBoard();
+                initializeBoard();
+            } else if (nextMove == "c") {
+                initializeBoard();
+            }
+        }
+    }
+    
 
 };
 
