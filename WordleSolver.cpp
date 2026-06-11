@@ -69,31 +69,6 @@ public:
         std::cout << std::endl;
     }
 
-    void play() {
-        std::vector<std::string> words = letterWords();
-        
-        // Print the first five words
-        std::cout << "[";
-        for (int i = 0; i < 5; ++i) {
-            std::cout << words[i];
-            if (i < 4) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << "]" << std::endl;
-
-
-        // Print the last five words
-        std::cout << "[";
-        for (int i = words.size() - 6; i < words.size() - 1; ++i) {
-            std::cout << words[i];
-            if (i < words.size() - 2) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << "]" << std::endl;
-    }
-
     std::vector<std::string> letterWords() {
         std::vector<std::string> rows;
         std::fstream file("Wordle_Solver/words.txt");
@@ -108,6 +83,57 @@ public:
         }
         return rows;
     }
+
+    std::vector<std::string> matcher(std::vector<std::string> bigList, std::vector<std::string> target) {
+        std::vector<std::string> results;
+
+        for (const std::string word : bigList) {
+            bool isMatch = true;
+            for (int i = 0; i < 5; i++) {
+                if (target[i] != "_" && target[i] != std::string(1, word[i])) {
+                    isMatch = false;
+                    break;
+                }
+            }
+            if (isMatch) {
+                results.push_back(word);
+            }
+        }
+
+        return results;
+    }
+
+    void play() {
+        std::string prompt = "Your current cell is marked with a '='.\n * Enter a letter if you know it belongs in that cell.\n * Enter a space if you want to skip to the next cell.\n * Enter '1' to move one cell back and make changes.\n * Enter '0' to exit the board editing process.";
+        std::cout << prompt << std::endl;
+        resetBoard();
+        initializeBoard();
+        std::vector<std::string> rows = letterWords();
+        std::vector<std::string> results = matcher(rows, board);
+
+        std::cout << "Here are the results of the matches:" << std::endl;
+        if (results.empty()) {
+                std::cout << "[]" << std::endl;
+            } else {
+                std::cout << "[";
+                if (results.size() <= 10) {
+                    for (size_t i = 0; i < results.size(); ++i) {
+                        std::cout << results[i];
+                        if (i < results.size() - 1) {
+                            std::cout << ", ";
+                        }
+                    }
+                } else {
+                    for (size_t i = 0; i < 10; ++i) {
+                        std::cout << results[i];
+                        if (i < 9) {
+                            std::cout << ", ";
+                        }
+                    }
+                }
+            std::cout << "]" << std::endl;
+         }
+     }
 
 };
 
